@@ -1,11 +1,89 @@
 <script setup>
+import { ref } from "vue"
+
+// base64
+const image = ref(null)
+const outputImage = ref(null)
+const url = "http://54.197.124.234:8088"
+
 function onImageChoose(event) {
-  let imageFile = event.target.files[0]
+  image.value = event.target.files[0]
+  console.log(image.value)
 }
+
+function imageFileToURL(imageFile) {
+  if (typeof imageFile !== "object") {
+    return imageFile;
+  } else if (imageFile) {
+    return URL.createObjectURL(imageFile);
+  }
+}
+
+function imageFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result.split(',')[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function base64toImageFile(base64Data, fileName) {
+  const byteCharacters = atob(base64Data.split(',')[1]);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], { type: 'image/png' });
+
+  return new File([blob], fileName, { type: 'image/png' });
+}
+
+async function processImageHandler() {
+  let imageBase64 = await imageFileToBase64(image.value)
+  let response = await fetch(`${url}/process-image`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: {
+      image: imageBase64,
+      name: "John",
+      surname: "Doe",
+      numbers: [1, 2, 3, 4, 5]
+    }
+  })
+  let { processed_image } = await response.json()
+  outputImage.value = base64toImageFile(processed_image, "image")
+}
+
 </script>
 
 <template>
-  <input type="file" accept="image/*" @change="onImageChoose($event)" />
+  <div class="flex flex-row">
+    <section class="ml-5 mr-16">
+      <h2 class="text-2xl mb-5">Your image</h2>
+      <img v-if="image" class="my-5 rounded" width="360" :src="imageFileToURL(image)" />
+      <div v-else class="my-5 rounded border border-2 border-dashed flex justify-center items-center text-slate-800"
+        :style="{ width: '360px', minHeight: '360px' }">Image to display</div>
+      <input type="file" accept="image/*" @change="onImageChoose($event)" />
+    </section>
+    <section class="flex flex-col justify-center">
+      <button class="rounded-full text-white" @click="processImageHandler">
+        Process ->
+      </button>
+    </section>
+    <section class="mr-5 ml-16">
+      <h2 class="text-2xl mb-5">Output image</h2>
+      <img v-if="outputImage" class="my-5 rounded" width="360" :src="imageFileToURL(outputImage)" />
+      <div v-else class="my-5 rounded border border-2 border-dashed flex justify-center items-center text-slate-800"
+        :style="{ width: '360px', minHeight: '360px' }">Image to display</div>
+    </section>
+  </div>
 </template>
 
 <style scoped>
