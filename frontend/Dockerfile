@@ -1,26 +1,32 @@
-# Use a lightweight node image
-FROM node:alpine
+# Use a Node.js 16 base image
+FROM node:16
 
-# Set the working directory
+# Create a directory for the app
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy the package.json and package-lock.json files
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy all files to the working directory
+# Copy the app files
 COPY . .
 
-# Build the Vue.js application
+# Build the app with Vite
 RUN npm run build
 
-# Set the production environment variable
-ENV NODE_ENV production
+# Use a lightweight Node.js image for production
+FROM node:16-alpine
 
-# Expose the port on which the application will run
-EXPOSE 3000
+# Create a directory for the app
+WORKDIR /app
 
-# Start the application
-CMD ["npm", "run", "start"]
+# Copy the built app from the previous stage
+COPY --from=0 /app/dist ./dist
+
+# Install a static file server
+RUN npm install -g serve
+
+# Set the command to serve the app
+CMD ["serve", "-s", "dist"]
