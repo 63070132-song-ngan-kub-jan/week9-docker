@@ -30,7 +30,6 @@ class ImageRequest(BaseModel):
     image: str
     name: str
     surname: str
-    numbers: List[int]
 
 # encode image as base64 string
 
@@ -62,5 +61,4 @@ async def process_image(image_request: ImageRequest):
 
     return {"name": image_request.name,
             "surname": image_request.surname,
-            "numbers": image_request.numbers,
             "processed_image": processed_image}

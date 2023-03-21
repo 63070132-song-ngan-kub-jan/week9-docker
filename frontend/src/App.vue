@@ -8,7 +8,6 @@ const url = "http://54.197.124.234:8088"
 
 function onImageChoose(event) {
   image.value = event.target.files[0]
-  console.log(image.value)
 }
 
 function imageFileToURL(imageFile) {
@@ -47,14 +46,13 @@ async function processImageHandler() {
   let response = await fetch(`${url}/process-image`, {
     method: 'POST',
     headers: {
-      'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
+    mode: 'no-cors',
     body: {
-      image: imageBase64,
-      name: "John",
-      surname: "Doe",
-      numbers: [1, 2, 3, 4, 5]
+      "image": imageBase64,
+      "name": "John",
+      "surname": "Doe",
     }
   })
   let { processed_image } = await response.json()
