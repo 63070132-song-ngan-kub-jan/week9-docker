@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from "vue"
+import axios from "axios"
 
 // base64
 const image = ref(null)
 const outputImage = ref(null)
-const url = "http://54.197.124.234:8088"
+const url = "http://localhost:8082"
 
 function onImageChoose(event) {
+  outputImage.value = null
   image.value = event.target.files[0]
 }
 
@@ -22,7 +24,7 @@ function imageFileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      resolve(reader.result.split(',')[1]);
+      resolve(reader.result);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
@@ -43,20 +45,13 @@ function base64toImageFile(base64Data, fileName) {
 
 async function processImageHandler() {
   let imageBase64 = await imageFileToBase64(image.value)
-  let response = await fetch(`${url}/process-image`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    mode: 'no-cors',
-    body: {
-      "image": imageBase64,
-      "name": "John",
-      "surname": "Doe",
-    }
+  let { data } = await axios.post(`${url}/process-image`, {
+    "image": imageBase64,
+    "name": "John",
+    "surname": "Doe",
+    "numbers": [1, 2, 3, 4, 5]
   })
-  let { processed_image } = await response.json()
-  outputImage.value = base64toImageFile(processed_image, "image")
+  outputImage.value = base64toImageFile(data.processed_image, "image")
 }
 
 </script>
@@ -72,7 +67,7 @@ async function processImageHandler() {
     </section>
     <section class="flex flex-col justify-center">
       <button class="rounded-full text-white" @click="processImageHandler">
-        Process ->
+        Convert ->
       </button>
     </section>
     <section class="mr-5 ml-16">

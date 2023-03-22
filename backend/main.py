@@ -11,10 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8081",
+    "*",
 ]
 
 app.add_middleware(
@@ -30,6 +27,7 @@ class ImageRequest(BaseModel):
     image: str
     name: str
     surname: str
+    numbers: List[int]
 
 # encode image as base64 string
 
@@ -59,6 +57,9 @@ async def process_image(image_request: ImageRequest):
     edges = apply_canny(image)
     processed_image = encode_image(edges)
 
-    return {"name": image_request.name,
-            "surname": image_request.surname,
-            "processed_image": processed_image}
+    return {
+        "name": image_request.name,
+        "surname": image_request.surname,
+        "processed_image": processed_image,
+        "numbers": image_request.numbers
+    }
