@@ -5,6 +5,8 @@ import axios from "axios"
 // base64
 const image = ref(null)
 const outputImage = ref(null)
+const loading = ref(false)
+
 const url = "http://localhost:8082"
 
 function onImageChoose(event) {
@@ -45,6 +47,7 @@ function base64toImageFile(base64Data, fileName) {
 
 async function processImageHandler() {
   let imageBase64 = await imageFileToBase64(image.value)
+  loading.value = true
   let { data } = await axios.post(`${url}/process-image`, {
     "image": imageBase64,
     "name": "John",
@@ -52,6 +55,7 @@ async function processImageHandler() {
     "numbers": [1, 2, 3, 4, 5]
   })
   outputImage.value = base64toImageFile(data.processed_image, "image")
+  loading.value = false
 }
 
 </script>
@@ -63,7 +67,7 @@ async function processImageHandler() {
       <img v-if="image" class="my-5 rounded" width="360" :src="imageFileToURL(image)" />
       <div v-else class="my-5 rounded border border-2 border-dashed flex justify-center items-center text-slate-800"
         :style="{ width: '360px', minHeight: '360px' }">Image to display</div>
-      <input type="file" accept="image/*" @change="onImageChoose($event)" />
+      <input type="file" accept="image/png,jpg" @change="onImageChoose($event)" />
     </section>
     <section class="flex flex-col justify-center">
       <button class="rounded-full text-white" @click="processImageHandler">
@@ -74,7 +78,19 @@ async function processImageHandler() {
       <h2 class="text-2xl mb-5">Output image</h2>
       <img v-if="outputImage" class="my-5 rounded" width="360" :src="imageFileToURL(outputImage)" />
       <div v-else class="my-5 rounded border border-2 border-dashed flex justify-center items-center text-slate-800"
-        :style="{ width: '360px', minHeight: '360px' }">Image to display</div>
+        :style="{ width: '360px', minHeight: '360px' }">
+        <div v-if="loading" class="lds-roller">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <div v-else>Image to display</div>
+      </div>
     </section>
   </div>
 </template>
